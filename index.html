@@ -269,7 +269,6 @@
     .hush-bubble { position:absolute; z-index: 45; left: 210px; top: 250px; min-width:72px; padding:8px 12px; border-radius: 20px; background: rgba(95,108,175,.92); color:#fff; font-weight: 1000; text-align:center; animation: hushPop 150ms var(--ease-bounce) both; pointer-events:none; }
     #drag-layer { position:absolute; inset:0; z-index: 30; pointer-events:none; }.ghost-piece { position:absolute; width:106px; height:106px; transform:translate(-50%,-50%) scale(1.15); filter:drop-shadow(0 8px 12px rgba(111,69,24,.35)); pointer-events:none; }.ghost-piece svg { width:106px; height:106px; }
     #fx-layer { position:absolute; inset:0; z-index:20; pointer-events:none; overflow:hidden; }.fx-star { position:absolute; font-size:24px; color:var(--yellow); animation: fxStar 650ms var(--ease-out) both; }.stamp { position:absolute; left:50%; top:270px; transform:translate(-50%,-50%) scale(0); font-size:64px; font-weight:1000; animation: stampIn 450ms var(--ease-bounce) forwards; }.stamp.ok{color:var(--green)}.stamp.bad{color:var(--red)}
-    .orientation-lock { position:fixed; inset:0; z-index:100; display:none; place-items:center; text-align:center; padding:30px; background:var(--cream); color:var(--brown); font-weight:1000; font-size:23px; }.orientation-lock.show{display:grid}.orientation-lock span{display:block;font-size:64px;margin-bottom:14px;animation:rotatePhone 1.5s ease-in-out infinite}
 
     @keyframes screenIn { from{opacity:0; transform:translateX(18px)} to{opacity:1; transform:translateX(0)} }
     @keyframes logoIn { from{opacity:0; transform:scale(.8)} to{opacity:1; transform:scale(1)} }
@@ -288,7 +287,6 @@
     @keyframes hushPop { from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)} }
     @keyframes fxStar { from{opacity:1;transform:translate(0,0) scale(.5) rotate(0)}to{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.4) rotate(180deg)} }
     @keyframes stampIn { 0%{opacity:0;transform:translate(-50%,-50%) scale(0) rotate(-20deg)}65%{opacity:1;transform:translate(-50%,-50%) scale(1.18) rotate(8deg)}100%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0)} }
-    @keyframes rotatePhone { 0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)} }
     @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration: 1ms !important; transition-duration: 1ms !important; } }
   </style>
 </head>
@@ -309,7 +307,6 @@
       <div id="toast" class="toast" role="status" aria-live="polite"></div>
     </div>
   </div>
-  <div id="orientation-lock" class="orientation-lock"><div><span>📱</span>세로로 돌려서<br>요리해요!</div></div>
   <!-- ===== BLOCK: SVG-DEFS ===== -->
   <svg id="svg-defs" width="0" height="0" style="position:absolute"><defs></defs></svg>
   <!-- ===== BLOCK: SCRIPT ===== -->
@@ -493,7 +490,7 @@
   function startLoop(){stopLoop();const tick=(now)=>{Game.raf=requestAnimationFrame(tick);if(Game.state.screen!==SCREEN.KITCHEN)return;const st=Game.state;if(st.timer.running&&!st.overlay){const dt=now-st.timer.lastTick;st.timer.leftMs-=dt;st.timer.lastTick=now;if(st.memoryVisible&&now>=st.memoryEndsAt){st.memoryVisible=false;render();}updateTimerUi();if(st.timer.leftMs<=0){st.timer.leftMs=0;st.timer.running=false;showToast('시간이 다 됐어요!');if(st.rush)rushFinish(true);else finishOrder(true);}}else st.timer.lastTick=now;};Game.state.timer.lastTick=performance.now();Game.raf=requestAnimationFrame(tick);}
   function stopLoop(){if(Game.raf)cancelAnimationFrame(Game.raf);Game.raf=0;}
   function updateTimerUi(){const st=Game.state,cfg=stageConfig();const limit=st.timer.limitSec*1000,left=Math.max(0,st.timer.leftMs),ratio=left/limit;const fill=document.getElementById('time-fill'),num=document.getElementById('time-number');if(fill){fill.style.width=(ratio*100)+'%';fill.classList.toggle('warn',ratio<=.3);}if(num)num.textContent=Math.ceil(left/1000)+'초';}
-  function updateScale(){const vw=window.innerWidth,vh=window.visualViewport?.height||window.innerHeight;const s=Math.min(vw/390,vh/844,1.6);Game.state.scale=s;const wrap=document.getElementById('scale-wrap');if(wrap)wrap.style.transform=`translate(-50%,-50%) scale(${s})`;document.getElementById('orientation-lock').classList.toggle('show',vw>vh);}
+  function updateScale(){const vw=window.innerWidth,vh=window.visualViewport?.height||window.innerHeight;const s=Math.min(vw/390,vh/844,1.6);Game.state.scale=s;const wrap=document.getElementById('scale-wrap');if(wrap)wrap.style.transform=`translate(-50%,-50%) scale(${s})`;}
 
   // [S9] BOOT / EVENTS
   function action(e){const el=e.target.closest('[data-action]');if(!el)return;const a=el.dataset.action;if(Date.now()<suppressClickUntil&&['preview-piece'].includes(a))return;Game.audio.ensure();Game.audio.button();
