@@ -1,0 +1,101 @@
+/* Rhythm Oven — warm dry-brush kitchen visual theme.
+   Layout, musical symbols and interaction areas are intentionally unchanged. */
+:root {
+  --cream: #fff8e8;
+  --cream-deep: #ead9b9;
+  --brown: #56391f;
+  --brown-soft: #79563a;
+  --red: #bd4d39;
+  --red-dark: #8e3529;
+  --yellow: #eec57e;
+  --purple: #695d88;
+  --green: #637d52;
+  --ink: #3e2c20;
+  --shadow: 0 5px 14px rgba(69,43,24,.19);
+}
+html, body, #app-root { background-color:#d5c2a1; }
+#app-root { background: radial-gradient(ellipse at center,#eddfc3 0%,#b9a382 100%); }
+#scale-wrap { background:#f5e9ce; box-shadow:0 16px 48px rgba(64,42,26,.28); }
+#scale-wrap::before { opacity:.12; }
+/* Source art fills the scene; parchment veils keep controls readable. */
+.splash-screen {
+  background:linear-gradient(180deg,rgba(255,247,224,.12) 0%,rgba(255,248,231,.84) 47%,rgba(255,248,231,.88) 100%),url('assets/drybrush/kitchen.webp') center center / cover no-repeat;
+}
+.splash-screen.screen.active { display:grid; }
+.splash-center { padding:22px 18px; border:2px solid rgba(112,75,44,.34); border-radius:30px; background:rgba(255,249,233,.89); box-shadow:0 8px 22px rgba(70,42,24,.16),inset 0 1px 0 #fff; }
+.splash-title,.main-header h1 { color:#57371f; text-shadow:0 2px 0 rgba(255,250,232,.82); }
+.splash-sub,.main-header p { color:#6c5b7d; }
+.start-hint { color:#5b3b25; text-shadow:0 1px 2px #fff9eb,0 0 8px #fff9eb; }
+.main-screen {
+  background:linear-gradient(180deg,rgba(255,247,225,.28) 0%,rgba(255,248,231,.69) 26%,rgba(255,247,225,.79) 64%,rgba(238,219,184,.90) 100%),url('assets/drybrush/kitchen.webp') center center / cover no-repeat;
+}
+.logo-mark,.main-header .logo-mini {
+  border-color:#765139;
+  background:conic-gradient(#c45942 0 50%,#73668c 50% 100%);
+  box-shadow:0 7px 0 rgba(86,57,31,.18),0 12px 22px rgba(86,57,31,.16),inset 0 0 0 4px #f5d69c;
+}
+.main-footer { background:linear-gradient(0deg,rgba(249,235,207,.86),rgba(249,235,207,0)); }
+.walk-belt { border-color:rgba(103,72,42,.3); filter:drop-shadow(0 2px 1px rgba(255,250,232,.7)); }
+.version { color:#6f5037; }
+.btn {
+  border:2px solid rgba(92,57,33,.35);
+  box-shadow:0 4px 0 rgba(76,48,27,.28),0 6px 12px rgba(76,48,27,.14),inset 0 2px 0 rgba(255,250,232,.32);
+  text-shadow:0 1px 0 rgba(62,37,24,.15);
+}
+.btn-red {background:linear-gradient(180deg,#d57659,#ad4030);color:#fffdf4;}
+.btn-yellow {background:linear-gradient(180deg,#f8d79a,#e7b765);color:#53361f;text-shadow:0 1px 0 #ffe9ba;}
+.btn-green {background:linear-gradient(180deg,#91a879,#60794f);color:#fffdf4;}
+.btn-purple {background:linear-gradient(180deg,#9486a9,#695a80);color:#fffdf4;}
+.btn-cream {background:linear-gradient(180deg,#fffaf0,#f0dfbe);color:#56391f;}
+.btn:focus-visible,.back-btn:focus-visible,.icon-btn:focus-visible,.stage-node:focus-visible,.piece-btn:focus-visible {outline:4px solid #506790;outline-offset:3px;}
+.back-btn,.icon-btn {background:linear-gradient(180deg,#fffaf0,#ead8b7);border:2px solid #b99870;box-shadow:0 3px 0 #9e7b57;}
+.coin-badge {background:#f4d593;border:2px solid #bd9156;color:#654318;box-shadow:inset 0 1px 0 #fff1cb;}
+.mode-screen,.stage-screen,.codex-screen {
+ background:linear-gradient(rgba(252,244,224,.88),rgba(245,229,198,.92)),url('assets/drybrush/kitchen.webp') center / cover no-repeat;
+}
+.mode-header,.stage-header,.codex-header {background:linear-gradient(180deg,rgba(255,249,232,.96),rgba(246,228,195,.86));border-bottom:2px solid rgba(145,106,70,.25);}
+.mode-card {border:2px solid #bc9b74;box-shadow:0 5px 0 rgba(112,76,43,.20),0 8px 16px rgba(88,55,30,.12),inset 0 2px 0 rgba(255,255,255,.75);}
+.mode-card.pizza {background:linear-gradient(135deg,#f3d6bd,#fff1d8);}
+.mode-card.pie {background:linear-gradient(135deg,#e3deeb,#f9eddd);}
+.mode-card.mix {background:linear-gradient(135deg,#f3dac5,#e6dff0);}
+.mode-card.locked {filter:grayscale(.65);opacity:.78;}
+.mode-art {background:rgba(255,250,235,.78);border:2px solid rgba(124,90,57,.22);box-shadow:inset 0 2px 7px rgba(104,68,38,.10);}
+.stage-node {border:3px solid #fff0cb;box-shadow:0 4px 0 #9d7952,0 7px 12px rgba(68,43,27,.2);}
+.stage-node.available {background:#eac17d;color:#56391f;}.stage-node.clear {background:#718b5c;color:#fff;}.stage-node.locked {background:#c4b7a5;color:#6b5c4d;}
+.map-path {opacity:.82;filter:drop-shadow(0 1px 1px #fff9e9);}
+.kitchen-screen {background:linear-gradient(rgba(255,248,231,.18),rgba(255,248,231,.12)),url('assets/drybrush/kitchen.webp') center center / cover no-repeat;}
+.kitchen-hud {background:linear-gradient(180deg,rgba(255,248,228,.96),rgba(243,224,191,.91));border-color:rgba(121,82,49,.32);}
+.customer-name,.plate-badge {background:#fff5dd;border:1px solid #c8a77c;color:#56391f;box-shadow:0 2px 4px rgba(75,48,28,.12);}
+.ticket {background:linear-gradient(130deg,#fffdf3,#f6e7c9);border:2px solid #c9a678;box-shadow:0 4px 0 rgba(101,68,39,.22),0 7px 12px rgba(70,42,24,.16);}
+.ticket::before {background:repeating-linear-gradient(135deg,#c96a50 0 7px,#fff3dc 7px 14px);}
+.item-chip.note {background:#f3d4c7;color:#7f3028;}.item-chip.rest {background:#e0daec;color:#534269;}
+.time-track {background:#e0cfaa;box-shadow:inset 0 1px 2px #b99c75;}
+.kitchen-worktop {background:linear-gradient(180deg,rgba(255,248,229,.40),rgba(244,224,187,.62));border-color:rgba(116,79,45,.18);}
+.plate-badge,.gauge-label,.gauge-tick,.serve-hint {text-shadow:0 1px 2px #fff9e7,0 0 6px #fff9e7;}
+.gauge-cell {background:rgba(255,247,226,.8);border-color:rgba(101,68,39,.53);}
+.serve-hint {color:#37572c;}
+.tray {background:linear-gradient(180deg,rgba(141,101,67,.68),rgba(116,81,53,.83));border-top-color:#aa8158;}
+.piece-btn {background:linear-gradient(160deg,#fff9e9,#eedbbc);border:2px solid #c4a47c;box-shadow:0 4px 0 #927151,0 6px 10px rgba(67,40,24,.22),inset 0 1px 0 #fff;}
+.piece-btn:active,.piece-btn.dragging {box-shadow:0 8px 12px rgba(58,36,21,.28);}
+.piece-label {color:#49301c;}.piece-sub {color:#795238;}
+.action-bar {background:linear-gradient(180deg,#f7e7ca,#e9d1a9);border-top-color:#c4a277;}
+.result-screen {background:linear-gradient(rgba(255,248,231,.89),rgba(248,232,204,.94)),url('assets/drybrush/kitchen.webp') center center / cover no-repeat;}
+.score-card,.codex-card {background:linear-gradient(145deg,#fffaf0,#f4e4c8);border:2px solid #d0b28b;box-shadow:0 5px 14px rgba(79,49,28,.16);}
+.score-cell {background:#f3e4c8;}.codex-card.locked {background:#d6cdbd;}
+.overlay-dim {background:rgba(44,28,18,.58);}
+.overlay-card {background:linear-gradient(145deg,#fff9eb,#eeddbd);border:3px solid #b39168;box-shadow:0 15px 35px rgba(37,23,15,.3),inset 0 2px 0 #fff;}
+.overlay-close {background:#e9d9be;color:#56391f;}
+.toast {background:#62432f;color:#fff9ea;}
+/* Keep the top control and independent rulebook consistent with the game. */
+.game-header {background:#f8edd7;border-bottom-color:#c7a97e;color:#56391f;}
+.guide-open {background:linear-gradient(180deg,#d57659,#ad4030);box-shadow:0 3px 0 #813c2d;color:#fff;}
+@media (prefers-reduced-motion:reduce) { .screen,.btn,.stage-node,.piece-btn {transition-duration:.001ms!important;} }
+/* Five portraits occupy the first row of the 5 × 4 character sheet. */
+.customer-box {border-radius:18px;background:rgba(255,248,231,.82);border:2px solid rgba(166,124,79,.52);box-shadow:inset 0 1px 0 #fff9ea,0 3px 6px rgba(78,48,27,.13);overflow:hidden;}
+.customer-portrait {display:block;width:104px;height:86.67px;background-image:url('assets/drybrush/characters.webp');background-repeat:no-repeat;background-size:500% 400%;background-position-y:0%;filter:drop-shadow(0 2px 2px rgba(80,49,29,.18));}
+.customer-dodo {background-position-x:0%;}.customer-beat {background-position-x:25%;}.customer-melo {background-position-x:50%;}.customer-tempo {background-position-x:75%;}.customer-mongmong {background-position-x:100%;}
+/* Reuse the painted wooden sign from the supplied UI atlas as a backdrop. */
+.main-header::before {content:"";position:absolute;z-index:0;left:20px;top:55px;width:350px;height:170px;background:url('assets/drybrush/ui-props.webp') 0 0 / 210% 316% no-repeat;opacity:.78;pointer-events:none;}
+.main-header .logo-mini,.main-header h1,.main-header p {position:relative;z-index:1;}
+.main-header h1,.main-header p {text-shadow:0 1px 2px #fff9e9,0 0 7px #fff9e9;}
+.customer-portrait {animation:idleBob 2s ease-in-out infinite;}
