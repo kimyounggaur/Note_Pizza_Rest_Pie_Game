@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#6F4518">
   <title>음표 피자 &amp; 쉼표 파이 — 리듬 요리사</title>
+  <link rel="stylesheet" href="rulebook.css">
   <!-- ===== BLOCK: STYLE ===== -->
   <style>
     :root {
@@ -291,6 +292,7 @@
   </style>
 </head>
 <body>
+  <header class="game-header"><div class="game-header-brand">🍕 리듬 오븐<span>음표 피자 &amp; 쉼표 파이</span></div><button class="guide-open" id="guide-open" type="button" aria-haspopup="dialog" aria-controls="rulebook-dialog">📖 게임 롤북</button></header>
   <div id="app-root">
     <div id="scale-wrap">
       <!-- ===== BLOCK: DOM ===== -->
@@ -487,10 +489,10 @@
   function previewPiece(id){suppressClickUntil=Date.now()+350;Game.audio.note(id);if(NOTES[id].kind==='rest')hush(NOTES[id].beats);showToast(`${NOTES[id].name} · ${NOTES[id].beats}박`);}
 
   // [S8] FX / TIMER — rAF 단일 루프
-  function startLoop(){stopLoop();const tick=(now)=>{Game.raf=requestAnimationFrame(tick);if(Game.state.screen!==SCREEN.KITCHEN)return;const st=Game.state;if(st.timer.running&&!st.overlay){const dt=now-st.timer.lastTick;st.timer.leftMs-=dt;st.timer.lastTick=now;if(st.memoryVisible&&now>=st.memoryEndsAt){st.memoryVisible=false;render();}updateTimerUi();if(st.timer.leftMs<=0){st.timer.leftMs=0;st.timer.running=false;showToast('시간이 다 됐어요!');if(st.rush)rushFinish(true);else finishOrder(true);}}else st.timer.lastTick=now;};Game.state.timer.lastTick=performance.now();Game.raf=requestAnimationFrame(tick);}
+  function startLoop(){stopLoop();const tick=(now)=>{Game.raf=requestAnimationFrame(tick);if(Game.state.screen!==SCREEN.KITCHEN)return;const st=Game.state;if(st.timer.running&&!st.overlay&&!window.rulebook?.isOpen){const dt=now-st.timer.lastTick;st.timer.leftMs-=dt;st.timer.lastTick=now;if(st.memoryVisible&&now>=st.memoryEndsAt){st.memoryVisible=false;render();}updateTimerUi();if(st.timer.leftMs<=0){st.timer.leftMs=0;st.timer.running=false;showToast('시간이 다 됐어요!');if(st.rush)rushFinish(true);else finishOrder(true);}}else st.timer.lastTick=now;};Game.state.timer.lastTick=performance.now();Game.raf=requestAnimationFrame(tick);}
   function stopLoop(){if(Game.raf)cancelAnimationFrame(Game.raf);Game.raf=0;}
   function updateTimerUi(){const st=Game.state,cfg=stageConfig();const limit=st.timer.limitSec*1000,left=Math.max(0,st.timer.leftMs),ratio=left/limit;const fill=document.getElementById('time-fill'),num=document.getElementById('time-number');if(fill){fill.style.width=(ratio*100)+'%';fill.classList.toggle('warn',ratio<=.3);}if(num)num.textContent=Math.ceil(left/1000)+'초';}
-  function updateScale(){const vw=window.innerWidth,vh=window.visualViewport?.height||window.innerHeight;const s=Math.min(vw/390,vh/844,1.6);Game.state.scale=s;const wrap=document.getElementById('scale-wrap');if(wrap)wrap.style.transform=`translate(-50%,-50%) scale(${s})`;}
+  function updateScale(){const vw=window.innerWidth,vh=Math.max(1,(window.visualViewport?.height||window.innerHeight)-56);const s=Math.min(vw/390,vh/844,1.6);Game.state.scale=s;const wrap=document.getElementById('scale-wrap');if(wrap)wrap.style.transform=`translate(-50%,-50%) scale(${s})`;}
 
   // [S9] BOOT / EVENTS
   function action(e){const el=e.target.closest('[data-action]');if(!el)return;const a=el.dataset.action;if(Date.now()<suppressClickUntil&&['preview-piece'].includes(a))return;Game.audio.ensure();Game.audio.button();
@@ -509,5 +511,7 @@
   window.addEventListener('resize',updateScale);window.visualViewport?.addEventListener('resize',updateScale);document.addEventListener('visibilitychange',()=>{if(document.hidden&&Game.state.screen===SCREEN.KITCHEN&&!Game.state.overlay)openOverlay('pause');});window.addEventListener('popstate',()=>{if(Game.state.overlay)closeOverlay();else if(Game.state.screen===SCREEN.KITCHEN)openOverlay('pause');else if(Game.state.screen===SCREEN.MODE)setScreen(SCREEN.MAIN);else if(Game.state.screen===SCREEN.STAGE)setScreen(SCREEN.MODE);else setScreen(SCREEN.MAIN);});
   Game.save=loadSave();Game.state={screen:SCREEN.SPLASH,mode:'pizza',stage:1,scale:1,overlay:null,codexKind:'note',codexBack:SCREEN.MAIN};render();
   </script>
+  <script src="rulebook-diagrams.js"></script>
+  <script src="rulebook.js"></script>
 </body>
 </html>
