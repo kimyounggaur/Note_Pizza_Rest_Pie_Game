@@ -1,0 +1,114 @@
+/* Responsive layout for the painted kitchen. All sizes are CSS pixels. */
+#app-root { overflow: hidden; }
+#scale-wrap {
+  position: relative; left: auto; top: auto; transform: none !important;
+  width: min(100%, 920px); height: 100%; margin: 0 auto;
+  overflow: hidden; isolation: isolate;
+}
+.screen { overflow-y: auto; overscroll-behavior: contain; }
+#screen-main, #screen-stage, #screen-result, #screen-codex, #screen-mode, #screen-kitchen { overflow-y: auto; }
+.main-screen, .stage-screen, .mode-screen, .result-screen, .codex-screen, .kitchen-screen {
+  position: relative; inset: auto; min-height: 100%; height: auto; overflow: visible;
+}
+.main-screen.screen.active, .stage-screen.screen.active, .mode-screen.screen.active,
+.result-screen.screen.active, .codex-screen.screen.active, .kitchen-screen.screen.active { display: block; }
+.main-header { height: auto; min-height: 150px; padding: 18px 12px 10px; }
+.main-header .logo-mini { width: 74px; height: 74px; margin-bottom: 9px; }
+.main-header h1 { font-size: clamp(22px, 5vw, 30px); }
+.main-header::before { left: 50%; top: 8px; width: min(350px, 95%); height: 145px; transform: translateX(-50%); }
+.main-footer { position: relative; height: auto; gap: 10px; padding: 18px 18px 12px; }
+.main-buttons .btn, .result-actions .btn { max-width: 100%; }
+.home-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; width: min(100% - 28px, 680px); margin: 10px auto; }
+.home-choice { min-height: 125px; padding: 16px; border: 2px solid #b8946d; border-radius: 22px; background: linear-gradient(145deg,#fff9e8,#f1d8b4); box-shadow: 0 4px 0 #a77f56, 0 8px 16px #52331a20; text-align: left; }
+.home-choice strong, .home-choice span, .home-choice small { display: block; }
+.home-choice strong { font-size: 20px; }
+.home-choice small { margin-top: 5px; font-size: 13px; line-height: 1.4; }
+.home-utilities { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; padding: 10px 14px 20px; }
+.home-utilities button { min-height: 48px; }
+.mode-cards, .stage-list { width: min(100%, 680px); margin-inline: auto; padding: 12px 16px 28px; }
+.stage-tabs { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; }
+.stage-tabs button { flex: 1 0 auto; min-height: 48px; }
+.stage-card { width: 100%; min-height: 74px; padding: 12px 16px; margin-bottom: 10px; border: 2px solid #c3a27c; border-radius: 16px; background: #fff7e6; text-align: left; }
+.stage-card:disabled { opacity: .64; }
+.stage-map { position: relative; inset: auto; min-height: 670px; max-width: 390px; margin: auto; }
+.rush-bar { position: relative; inset: auto; margin: 12px 20px 24px; }
+.score-card { width: min(100%, 480px); }
+.result-screen { padding-bottom: 30px; }
+.codex-grid { max-width: 700px; margin: auto; }
+/* Kitchen sections stay in normal flow so short viewports scroll, never shrink. */
+.kitchen-screen.screen.active { display: flex; flex-direction: column; min-height: 100%; }
+.kitchen-hud, .customer-ticket, .kitchen-worktop, .plate-area, .tray, .action-bar {
+  position: relative; inset: auto; flex: none;
+}
+.kitchen-hud { height: auto; min-height: 56px; }
+.customer-ticket { height: auto; min-height: 120px; grid-template-columns: minmax(70px, 112px) minmax(0, 1fr); }
+.customer-box { min-height: 100px; }
+.ticket { min-height: 100px; height: auto; overflow: visible; }
+.ticket-items { min-height: 30px; }
+.kitchen-worktop { display: none; }
+.plate-area { min-height: 252px; height: clamp(252px, 34vh, 340px); background: rgba(255,248,229,.55); }
+.active-plate, .drop-ring { width: min(64vw, 270px, calc(100% - 100px)); height: auto; aspect-ratio: 1; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+.drop-ring.valid { transform: translate(-50%, -50%) scale(1.04); }
+.plate-svg { width: 100%; height: 100%; }
+.plate-badge { top: 8px; left: 12px; }
+.plate-stack { left: 8px; top: 50px; }
+.gauge { right: 12px; top: 50%; transform: translateY(-50%); height: min(196px, 72%); }
+.gauge-cells { min-height: 0; flex: 1; height: auto; }
+.gauge-tick { position: static; width: 72px; }
+.serve-hint { left: 50%; bottom: 5px; width: 90%; transform: translateX(-50%); text-align: center; animation: none; }
+.tray { min-height: 0; height: auto; padding: 10px; overflow-x: auto; overflow-y: hidden; }
+.tray-inner { justify-content: flex-start; min-width: max-content; height: auto; align-items: stretch; }
+.piece-card { flex: 0 0 106px; display: flex; flex-direction: column; align-items: stretch; gap: 5px; }
+.piece-card .piece-btn { flex: none; width: 100%; height: 134px; }
+.piece-art, .piece-art > svg { width: 75px; height: 75px; }
+.listen-piece { min-height: 44px; border-radius: 12px; border: 1px solid #a98158; background: #fff2d9; font-weight: 800; }
+.action-bar { position: sticky; bottom: 0; margin-top: auto; min-height: 76px; height: auto; grid-template-columns: minmax(84px, 1fr) 48px minmax(120px, 1.4fr); gap: 7px; padding: 8px max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
+.action-bar .btn { min-height: 48px; height: auto; font-size: 15px; }
+.serve-btn { min-height: 52px !important; }
+.tutorial-guide { padding: 9px 12px; background: #fff6db; border-bottom: 2px solid #d2b17d; font-weight: 800; line-height: 1.4; }
+.practice-result { margin: 14px auto; max-width: 480px; padding: 16px; border-radius: 20px; background: #fff7e5; }
+.overlay-card { width: min(340px, calc(100% - 24px)); max-height: calc(100% - 24px); overflow-y: auto; }
+.toast { max-width: min(350px, calc(100% - 24px)); }
+button:focus-visible { outline: 4px solid #375c99; outline-offset: 3px; }
+button { touch-action: manipulation; }
+@media (min-width: 700px) {
+  .home-choices { gap: 20px; }
+  .home-choice { min-height: 160px; }
+  .kitchen-screen.screen.active { display: grid; grid-template-columns: minmax(240px, .8fr) minmax(300px, 1.2fr); grid-template-rows: auto auto minmax(270px, 1fr) auto auto; }
+  .kitchen-hud, .tutorial-guide, .tray, .action-bar { grid-column: 1 / -1; }
+  .customer-ticket { grid-column: 1; grid-row: 3; align-self: start; grid-template-columns: 1fr; }
+  .customer-box { min-height: 105px; }
+  .plate-area { grid-column: 2; grid-row: 3; height: 100%; min-height: 270px; }
+  .tray-inner { justify-content: center; }
+  .action-bar { width: 100%; }
+}
+@media (max-width: 360px) {
+  .home-choices { gap: 8px; }
+  .home-choice { padding: 11px; }
+  .home-choice strong { font-size: 17px; }
+  .plate-area { min-height: 220px; height: 220px; }
+  .customer-ticket { padding: 6px 8px; }
+  .piece-card { flex-basis: 96px; }
+  .piece-card .piece-btn { height: 120px; }
+  .piece-art, .piece-art > svg { width: 65px; height: 65px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}
+.stage-card strong, .stage-card span, .stage-card small { display: block; }
+.stage-card span { margin-top: 4px; font-size: 14px; }
+.stage-card small { margin-top: 3px; color: #694c34; }
+.stage-tabs button { padding: 8px 14px; border: 2px solid #be9a70; border-radius: 14px; background: #fff6e2; font-weight: 800; }
+.stage-tabs button.selected { background: #735d7d; border-color: #59435f; color: #fff; }
+.home-utilities button { padding: 8px 12px; border: 1px solid #ba966e; border-radius: 13px; background: #fff6e4; font-weight: 800; }
+.tutorial-guide button { min-height: 44px; margin-left: 6px; padding: 6px 10px; border-radius: 10px; background: #f1d5a4; }
+@media (min-width: 700px) {
+  .kitchen-hud { grid-row: 1; }
+  .tutorial-guide { grid-row: 2; }
+  .tray { grid-row: 4; }
+  .action-bar { grid-row: 5; }
+}
+/* Keep the memory-order instruction and timer readable while the items are hidden. */
+.ticket.is-memory { opacity: 1; filter: none; }
+.ticket.is-memory .ticket-items { opacity: .16; filter: blur(3px); }
+.ticket.is-memory .memory-note { background: rgba(255,248,231,.86); inset: 34px 8px auto; min-height: 38px; border-radius: 10px; font-size: 15px; }
