@@ -27,3 +27,14 @@
 body #app-root { top:56px; }
 .guide-jump {display:inline-flex;min-height:38px;align-items:center;padding:6px 11px;background:#fff;border:1px solid #e8cfaa;border-radius:99px;color:#76502b;font-size:13px;font-weight:800;cursor:pointer}
 .guide-hero figure,.guide-grid figure {margin:0}.guide-hero figcaption,.guide-grid>figure:not(.guide-visual)>figcaption {font-size:12px;font-weight:700;text-align:center;margin-top:5px}
+/* Additional illustrated examples, arranged as a reusable 3 × 2 sheet. */
+.guide-new-figure { margin: 16px auto; width: min(100%, 440px); }
+.guide-art-pair .guide-new-figure { margin: 0; width: 100%; }
+.guide-new-scene { width:100%; aspect-ratio:2 / 1; border-radius:16px; background-size:300% 200%; background-repeat:no-repeat; box-shadow:0 4px 12px #6f451829; }
+.guide-sheet-a { background-image:url('./assets/rulebook-new-scenes-a.webp'); }
+.guide-sheet-b { background-image:url('./assets/rulebook-new-scenes-b.webp'); }
+.guide-frame-0 { background-position:0% 0%; }.guide-frame-1 { background-position:50% 0%; }.guide-frame-2 { background-position:100% 0%; }
+.guide-frame-3 { background-position:0% 100%; }.guide-frame-4 { background-position:50% 100%; }.guide-frame-5 { background-position:100% 100%; }
+.guide-new-figure figcaption { padding:7px 5px; text-align:center; font-size:13px; line-height:1.5; font-weight:700; color:#795b3d; }
+.guide-jump { min-height:44px; }
+@media(max-width:420px){.guide-art-pair{gap:8px}.guide-new-figure figcaption{font-size:12px}}
