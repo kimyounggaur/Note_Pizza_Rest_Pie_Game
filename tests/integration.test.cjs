@@ -139,3 +139,23 @@ test('러시의 준비된 주문을 모두 마쳐도 도전 별을 지급하지 
   assert.equal(Game.state.result.rush,true);
   assert.equal(JSON.stringify(Game.save.progress),stars);
 });
+
+test('홈의 소리 설정을 바꿔도 이어갈 주문과 보상 장부가 유지된다',()=>{
+  const first=boot();first.ctx.TEST.startStage('pizza',1,false,'challenge');
+  first.ctx.TEST.addPiece('quarter');const before=first.ctx.TEST.Game.state;
+  const second=boot(first.store);second.click('toggle-sound');
+  const written=JSON.parse(second.store.get('npizza.save.v2'));
+  assert.equal(written.session.orderId,before.currentOrder.id);
+  assert.equal(written.session.plates[0].slices.length,1);
+  second.click('resume-session');assert.equal(second.ctx.TEST.Game.state.servedTicks,4);
+});
+test('사용자가 주방에서 나가거나 기록을 초기화하면 이어갈 주문을 지운다',()=>{
+  const env=boot();env.ctx.TEST.startStage('pizza',1,false,'practice');env.ctx.TEST.addPiece('quarter');
+  env.ctx.TEST.openOverlay('pause');env.click('leave-stage');
+  assert.equal(JSON.parse(env.store.get('npizza.save.v2')).session,null);
+  env.ctx.TEST.startStage('pizza',1,false,'practice');env.ctx.TEST.addPiece('quarter');
+  env.ctx.TEST.setScreen(env.ctx.TEST.SCREEN.MAIN);
+  env.click('reset-progress',{confirm:'yes'});
+  const written=JSON.parse(env.store.get('npizza.save.v2'));
+  assert.equal(written.session,null);assert.deepEqual(written.awardedOrderIds,[]);
+});

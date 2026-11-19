@@ -793,7 +793,7 @@ function warnSave() {
   saveWarned = true;
   showToast("진행 저장을 사용할 수 없어요");
 }
-function saveNow() {
+function saveNow({ discardSession = false } = {}) {
   if (!Game.save) return;
   Game.save.lastPlayedAt = new Date().toISOString();
   Game.save.coins = Math.max(
@@ -804,22 +804,27 @@ function saveNow() {
     warnSave();
     return;
   }
-  const st = Game.state || {},
+  const st = Game.state || {};
+  let session = savedSession;
+  if (discardSession || st.screen === SCREEN.RESULT) {
+    session = null;
+  } else if (st.screen === SCREEN.KITCHEN) {
     session = PizzaSave.makeSnapshot(st, {
       sessionId: st.sessionId,
       activity: st.activity,
       awardedOrderIds: st.awardedOrderIds || [],
       now: pausedAt ?? performance.now(),
-    }),
-    res = PizzaSave.write(
-      {
-        save: Game.save,
-        session,
-        sessionId: st.sessionId,
-        awardedOrderIds: st.awardedOrderIds || [],
-      },
-      localStorage,
-    );
+    });
+  }
+  const res = PizzaSave.write(
+    {
+      save: Game.save,
+      session,
+      sessionId: session?.sessionId || st.sessionId,
+      awardedOrderIds: session?.awardedOrderIds || st.awardedOrderIds || [],
+    },
+    localStorage,
+  );
   if (res.ok) savedSession = session;
   else warnSave();
 }
@@ -2144,7 +2149,7 @@ function action(e) {
   if (a === "leave-stage") {
     closeOverlay();
     setScreen(SCREEN.STAGE);
-    saveNow();
+    saveNow({ discardSession: true });
     return;
   }
   if (a === "add-piece") {
@@ -2266,7 +2271,7 @@ function action(e) {
       Game.state.awardedOrderIds = [];
       Game.state.sessionId = null;
       setScreen(SCREEN.MAIN);
-      saveNow();
+      saveNow({ discardSession: true });
       showToast("진행 기록을 초기화했어요");
     } else {
       el.dataset.confirm = "yes";

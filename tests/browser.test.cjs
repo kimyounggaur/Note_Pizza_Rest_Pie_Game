@@ -708,3 +708,37 @@ browserTest(
     }
   },
 );
+
+browserTest(
+  "home and codex preference changes preserve a saved order until explicit resume",
+  async () => {
+    const { page, context, errors } = await openGame({ legacy: legacySave() });
+    try {
+      await challenge(page);
+      await page.locator(".piece-btn").click();
+      const old = await state(page);
+      await page.reload();
+      assert.equal(await action(page, "resume-session").count(), 1);
+      await page.locator("#sound-toggle").click();
+      await page.locator('.game-header [data-action="open-settings"]').click();
+      await page
+        .locator('[data-action="toggle-setting"][data-setting="lefty"]')
+        .click();
+      await page.keyboard.press("Escape");
+      await action(page, "go-codex").click();
+      await page.locator("#sound-toggle").click();
+      await action(page, "codex-back").click();
+      await page.reload();
+      await action(page, "resume-session").click();
+      const restored = await state(page);
+      assert.equal(restored.overlay, "pause");
+      assert.equal(restored.order.id, old.order.id);
+      assert.equal(restored.servedTicks, old.servedTicks);
+      assert.equal(restored.coins, old.coins);
+      assert.equal(await page.evaluate(() => Game.save.settings.lefty), true);
+      assert.deepEqual(errors, []);
+    } finally {
+      await context.close();
+    }
+  },
+);
