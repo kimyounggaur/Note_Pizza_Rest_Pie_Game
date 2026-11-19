@@ -1,7 +1,7 @@
 /* Responsive layout for the painted kitchen. All sizes are CSS pixels. */
 #app-root { overflow: hidden; }
 #scale-wrap {
-  position: relative; left: auto; top: auto; transform: none !important;
+  position: relative; left: auto; top: auto; transform: none;
   width: min(100%, 920px); height: 100%; margin: 0 auto;
   overflow: hidden; isolation: isolate;
 }
@@ -64,7 +64,7 @@
 .listen-piece { min-height: 44px; border-radius: 12px; border: 1px solid #a98158; background: #fff2d9; font-weight: 800; }
 .action-bar { position: sticky; bottom: 0; margin-top: auto; min-height: 76px; height: auto; grid-template-columns: minmax(84px, 1fr) 48px minmax(120px, 1.4fr); gap: 7px; padding: 8px max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
 .action-bar .btn { min-height: 48px; height: auto; font-size: 15px; }
-.serve-btn { min-height: 52px !important; }
+.serve-btn { min-height: 52px; }
 .tutorial-guide { padding: 9px 12px; background: #fff6db; border-bottom: 2px solid #d2b17d; font-weight: 800; line-height: 1.4; }
 .practice-result { margin: 14px auto; max-width: 480px; padding: 16px; border-radius: 20px; background: #fff7e5; }
 .overlay-card { width: min(340px, calc(100% - 24px)); max-height: calc(100% - 24px); overflow-y: auto; }
@@ -112,3 +112,117 @@ button { touch-action: manipulation; }
 .ticket.is-memory { opacity: 1; filter: none; }
 .ticket.is-memory .ticket-items { opacity: .16; filter: blur(3px); }
 .ticket.is-memory .memory-note { background: rgba(255,248,231,.86); inset: 34px 8px auto; min-height: 38px; border-radius: 10px; font-size: 15px; }
+/* Readable rhythm data and full-size touch controls at every viewport width. */
+html { font-size: 16px; }
+body { line-height: 1.45; }
+#scale-wrap { transform: none; }
+.home-choice small { font-size: 16px; }
+.stage-card span, .stage-card small { font-size: 16px; line-height: 1.4; }
+.customer-ticket { align-items: start; }
+.customer-box { align-self: start; }
+.ticket { min-width: 0; text-align: left; }
+.ticket-title { font-size: 17px; white-space: normal; overflow: visible; text-overflow: clip; }
+.ticket-items { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+.item-chip { width: 100%; min-width: 0; min-height: 48px; padding: 6px 8px; gap: 7px; font-size: 16px; line-height: 1.4; border-radius: 11px; }
+.item-chip svg { flex: 0 0 34px; width: 34px; height: 34px; }
+.practice-time { padding-top: 7px; font-size: 15px; }
+.time-number { font-size: 14px; }
+.ticket-time { grid-template-columns: minmax(0, 1fr) 42px; gap: 8px; }
+.hud-center { font-size: 15px; line-height: 1.25; }
+.customer-name { max-width: calc(100% - 12px); font-size: 13px; }
+.plate-area { height: 340px; min-height: 340px; }
+.active-plate, .drop-ring { width: min(72vw, 270px, calc(100% - 74px)); top: 43%; }
+.gauge { inset: auto 12px 35px; width: auto; height: auto; transform: none; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 5px 10px; align-items: center; }
+.gauge-cells { width: 100%; height: 12px; display: flex; flex-direction: row; grid-column: 1 / -1; }
+.gauge-cell { min-width: 0; border-width: 1px; border-radius: 4px; }
+.gauge-fill { border-radius: 2px; }
+.gauge-label, .gauge-tick { width: auto; font-size: 14px; text-align: left; }
+.gauge-tick { text-align: right; }
+.plate-badge { font-size: 14px; }
+.serve-hint { font-size: 14px; line-height: 1.4; }
+.piece-card { flex-basis: 122px; }
+.piece-card .piece-btn { height: 154px; min-height: 154px; }
+.piece-label { font-size: 16px; line-height: 1.35; }
+.piece-sub { font-size: 14px; }
+.listen-piece { min-height: 48px; font-size: 16px; }
+.tray { scrollbar-width: thin; scrollbar-color: #fff1d3 #79563a; padding-bottom: 14px; }
+.tray::-webkit-scrollbar { display: block; height: 8px; }
+.tray::-webkit-scrollbar-thumb { background: #fff1d3; border-radius: 4px; }
+.tray::-webkit-scrollbar-track { background: #79563a; }
+.action-bar { grid-template-columns: minmax(92px, 1fr) minmax(80px, .8fr) minmax(140px, 1.4fr); gap: 8px; }
+.action-bar .btn { min-height: 52px; font-size: 16px; line-height: 1.3; white-space: normal; padding: 6px 8px; }
+.action-bar .hint-btn { width: auto; }
+.action-bar .serve-btn { min-height: 56px; }
+.tutorial-guide { font-size: 16px; }
+.tutorial-guide button { min-height: 48px; font-size: 14px; }
+.guide-open, .guide-close, .overlay-close, .codex-tab, .listen-btn, .toggle, .danger, .segment button, .learned-strip button { min-height: 48px; min-width: 48px; }
+.guide-open { font-size: 15px; }
+.guide-close, .overlay-close { width: 48px; height: 48px; }
+.segment button { font-size: 14px; height: auto; }
+.toggle { height: 48px; }
+.setting-row { gap: 12px; }
+.setting-row strong, .pause-card .pause-status, .preview-meta, .mode-card p { font-size: 16px; }
+.setting-row .segment { flex-wrap: wrap; justify-content: end; }
+.codex-header { grid-template-columns: 48px minmax(0, 1fr); height: auto; min-height: 80px; gap: 10px; }
+.codex-header h2 { font-size: 22px; }
+.codex-tabs { grid-column: 1 / -1; display: flex; justify-content: center; gap: 8px; }
+.codex-tab { width: auto; padding: 6px 20px; font-size: 16px; }
+.codex-card p, .score-cell small, .star-caption, .rush-best { font-size: 14px; }
+.overlay-card { padding-top: 24px; }
+.overlay-card h2 { padding-inline-end: 24px; }
+.overlay-card p { font-size: 16px; }
+@media (max-width: 599px) {
+  .customer-ticket { grid-template-columns: 76px minmax(0, 1fr); gap: 8px; padding: 10px 8px; }
+  .customer-box { min-height: 96px; }
+  .customer-portrait { width: 72px; height: 60px; }
+  .customer-name { bottom: 4px; left: 4px; padding-inline: 5px; }
+  .stage-header { grid-template-columns: 48px minmax(0, 1fr); height: auto; min-height: 80px; gap: 8px; }
+  .stage-header .coin-badge { grid-column: 1 / -1; justify-self: end; }
+  .action-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .action-bar .serve-btn { grid-column: 1 / -1; width: 100%; }
+  .main-header p { padding-inline: 12px; line-height: 1.5; }
+}
+@media (max-width: 360px) {
+  .home-choices { grid-template-columns: minmax(0, 1fr); }
+  .home-choice { min-height: 112px; padding: 14px; }
+  .home-choice strong { font-size: 20px; }
+  .piece-card { flex-basis: 122px; }
+  .piece-card .piece-btn { height: 154px; }
+  .plate-area { min-height: 320px; height: 320px; }
+  .piece-art, .piece-art > svg { width: 75px; height: 75px; }
+  .game-header-brand span { font-size: 12px; }
+}
+@media (min-width: 700px) {
+  .plate-area { height: 100%; min-height: 340px; }
+  .customer-ticket { grid-template-columns: minmax(0, 1fr); }
+  .customer-box { display: none; }
+  .tray-inner { justify-content: flex-start; }
+}
+.placement-preview { position: absolute; inset: 0; pointer-events: none; opacity: .38; }
+.placement-preview.is-blocked { opacity: .16; }
+.piece-btn.is-tutorial-target, .serve-btn.is-tutorial-target { outline: 4px solid #375c99; outline-offset: 3px; }
+#drag-layer { position: fixed; }
+.ghost-piece { position: fixed; transform: translate(-50%, -50%); }
+/* The fixed header reserves the same safe-area space as the scrolling game. */
+.game-header { height: calc(60px + env(safe-area-inset-top)); padding-top: calc(6px + env(safe-area-inset-top)); }
+body #app-root { top: calc(60px + env(safe-area-inset-top)); }
+/* Controls follow the tray so focused ingredients are never covered by actions. */
+.action-bar { position: relative; bottom: auto; }
+.game-header-brand { flex: 1; min-width: 0; }
+.game-header-tools { display: flex; flex: none; align-items: center; gap: 4px; }
+.header-tool { width: 48px; height: 48px; padding: 0; display: inline-grid; place-items: center; border: 2px solid #b99870; border-radius: 14px; background: #fff8e8; color: #56391f; font-size: 22px; }
+.guide-open { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.lesson-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
+.lesson-comparison section { min-width: 0; padding: 10px; border: 1px solid #b99870; border-radius: 12px; background: #fff8e8; }
+.lesson-comparison h3 { margin: 0 0 8px; font-size: 16px; }
+.lesson-comparison p { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
+.lesson-comparison svg { flex: 0 0 34px; width: 34px; height: 34px; }
+.result-screen details { max-width: 480px; margin: 12px auto; text-align: left; }
+.result-screen summary { min-height: 48px; display: flex; align-items: center; padding: 10px 14px; border-radius: 12px; border: 1px solid #b99870; background: #fff8e8; cursor: pointer; font-weight: 800; }
+@media (max-width: 429px) {
+  .game-header { padding-inline: 8px; gap: 4px; }
+  .game-header-brand { font-size: 14px; }
+  .game-header-brand span, .guide-open span { display: none; }
+  .guide-open { width: 48px; padding-inline: 0; font-size: 21px; }
+}
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }

@@ -1,4 +1,4 @@
-/* Integration tests of the real inline game script using a small deterministic DOM clock.
+/* Integration tests of the game runtime script using a small deterministic DOM clock.
    Layout, browser events and rendered pixels still require an actual browser. */
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
@@ -15,10 +15,8 @@ function boot(seed) {
   const ctx={console,document:doc,navigator:{},performance:{now:()=>time},history:{replaceState(){}},localStorage:{getItem(k){return store.has(k)?store.get(k):null},setItem(k,v){store.set(k,String(v))},removeItem(k){store.delete(k)}},setTimeout(fn,ms){const id=nextId++;queue.push({id,at:time+ms,fn});return id},clearTimeout(id){queue=queue.filter(x=>x.id!==id)},requestAnimationFrame(fn){const id=nextId++;raf.set(id,fn);return id},cancelAnimationFrame(id){raf.delete(id)},addEventListener(n,cb){(windowListeners[n] ||= []).push(cb)},innerWidth:390,innerHeight:844};
   ctx.window=ctx;ctx.globalThis=ctx;vm.createContext(ctx);
   for(const src of ['pizza-domain.js','js/pizza-save.js'])vm.runInContext(fs.readFileSync(path.join(repo,src),'utf8'),ctx,{filename:src});
-  const html=fs.readFileSync(path.join(repo,'index.html'),'utf8');
-  const main=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(x=>x[1]).find(x=>x.includes('const Game ='));
-  if(!main)throw new Error('Game script not found');
-  vm.runInContext(main+'\n;globalThis.TEST={Game,SCREEN,NOTES,startStage,addPiece,undoPiece,finishOrder,rushFinishOrder,openOverlay,closeOverlay,action,judge,startOrder,advanceOrder,renderKitchen};',ctx,{filename:'game-inline.js'});
+  const main=fs.readFileSync(path.join(repo,'js/app.js'),'utf8');
+  vm.runInContext(main+'\n;globalThis.TEST={Game,SCREEN,NOTES,startStage,addPiece,undoPiece,finishOrder,rushFinishOrder,openOverlay,closeOverlay,action,judge,startOrder,advanceOrder,renderKitchen,saveNow,setScreen,hint};',ctx,{filename:'app.js'});
   function advance(ms, runRaf=true){const end=time+ms;while(true){queue.sort((a,b)=>a.at-b.at);const x=queue[0];if(!x||x.at>end)break;queue.shift();time=x.at;x.fn()}time=end;if(runRaf)for(const [id,fn] of [...raf]){raf.delete(id);fn(time)}}
   function click(action, dataset={}) { const el={dataset:{action,...dataset},closest(){return this}};ctx.TEST.action({target:el,detail:0}); }
   return {ctx,doc,store,elements,advance,click,dispatch(name,event){for(const f of listeners[name]||[])f(event)},dispatchWindow(name,event){for(const f of windowListeners[name]||[])f(event)}};
@@ -102,4 +100,42 @@ test('게임 대화상자의 제목, 포커스 순환, Escape와 포커스 복�
   key('Escape');assert.equal(ctx.TEST.Game.state.overlay,null);assert.equal(doc.activeElement,opener);
   ctx.TEST.startStage('pizza',1,false,'challenge');ctx.TEST.openOverlay('pause');key('Escape');assert.equal(ctx.TEST.Game.state.overlay.type,'pause');
   ctx.TEST.closeOverlay();ctx.TEST.openOverlay('lesson',{noteId:'quarter',result:{need:{quarter:1},have:{}}});key('Escape');assert.equal(ctx.TEST.Game.state.overlay.type,'lesson');
+});
+
+test('정지한 기억 주문을 저장해도 남은 안내 시간이 보존된다',()=>{
+  const env=boot(),{Game,startStage,openOverlay,saveNow}=env.ctx.TEST;
+  startStage('pizza',10,false,'challenge');
+  const left=Game.state.memoryEndsAt-env.ctx.performance.now();
+  openOverlay('pause');env.advance(20000,false);saveNow();
+  const saved=JSON.parse(env.store.get('npizza.save.v2'));
+  assert.equal(saved.session.memoryRemainingMs,left);
+});
+test('서빙한 뒤 홈으로 나가면 예약 주문 전환이 멈춘다',()=>{
+  const env=boot(),{Game,startStage,addPiece,finishOrder,setScreen,SCREEN}=env.ctx.TEST;
+  startStage('pizza',1,false,'practice');addPiece('quarter');addPiece('quarter');finishOrder();
+  const before=Game.state.orderIndex;setScreen(SCREEN.MAIN);env.advance(2000);
+  assert.equal(Game.state.screen,SCREEN.MAIN);assert.equal(Game.state.orderIndex,before);
+});
+test('다른 주문에서 온 재료 명령은 접시를 바꾸지 않는다',()=>{
+  const env=boot(),{Game,startStage,addPiece}=env.ctx.TEST;
+  startStage('pizza',1,false,'practice');
+  assert.equal(addPiece('quarter','drag',{sessionId:Game.state.sessionId,orderId:'previous-order'}),false);
+  assert.equal(Game.state.servedTicks,0);
+});
+test('튜토리얼을 건너뛴 연습을 다시 열어도 안내가 되살아나지 않는다',()=>{
+  const first=boot();first.ctx.TEST.startStage('pizza',1,false,'practice');first.click('tutorial-skip');
+  const second=boot(first.store);second.click('resume-session');
+  assert.equal(second.ctx.TEST.Game.state.tutorialStep,null);
+  assert.equal(second.ctx.TEST.Game.save.tutorialDone.pizza,false);
+  assert.equal(second.ctx.TEST.Game.save.tutorialStatus,'skipped');
+});
+test('러시의 준비된 주문을 모두 마쳐도 도전 별을 지급하지 않는다',()=>{
+  const env=boot(),{Game,startStage,advanceOrder}=env.ctx.TEST;
+  startStage('pizza',10,true);
+  const stars=JSON.stringify(Game.save.progress);
+  Game.state.orderIndex=Game.state.orders.length-1;Game.state.busy=true;
+  advanceOrder();
+  assert.equal(Game.state.screen,'RESULT');
+  assert.equal(Game.state.result.rush,true);
+  assert.equal(JSON.stringify(Game.save.progress),stars);
 });

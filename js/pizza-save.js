@@ -1,13 +1,17 @@
 /* Durable, backward-compatible storage for Note Pizza. No DOM dependencies. */
 (function (root, factory) {
-  const api = factory();
+  const domainApi = typeof module === 'object' && module.exports ? require('../pizza-domain.js') : root && root.PizzaDomain;
+  const api = factory(domainApi);
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (root) root.PizzaSave = api;
-})(typeof window !== 'undefined' ? window : globalThis, function () {
+})(typeof window !== 'undefined' ? window : globalThis, function (domainApi) {
   'use strict';
   const V1 = 'npizza.save.v1', V2 = 'npizza.save.v2', BACKUP = 'npizza.save.v1.backup';
   const MODES = ['pizza', 'pie', 'mix'];
   const TICKS = {whole:16, wholeRest:16, dottedHalf:12, dottedHalfRest:12, half:8, halfRest:8, quarter:4, quarterRest:4, eighth:2, eighthRest:2, sixteenth:1, sixteenthRest:1};
+  const CUSTOMERS = ['dodo', 'beat', 'melo', 'tempo', 'mongmong'];
+  let stageConfigs = null;
+  let domain = domainApi.create(Object.fromEntries(Object.entries(TICKS).map(([id,ticks]) => [id,{ticks}])));
   const knownNote = id => typeof id === 'string' && Object.prototype.hasOwnProperty.call(TICKS,id);
   const clone = value => JSON.parse(JSON.stringify(value));
   const number = n => typeof n === 'number' && Number.isFinite(n) && n >= 0;
@@ -24,8 +28,23 @@
     for (const key of Object.keys(value)) if (!(key in out) && key !== '__proto__' && key !== 'constructor' && key !== 'prototype') out[key] = clone(value[key]);
     return out;
   }
+  function configure({notes, stages}) {
+    if (!object(notes) || !Array.isArray(stages) || !stages.length) return false;
+    if (!Object.keys(TICKS).every(id => notes[id] && notes[id].ticks === TICKS[id])) return false;
+    const validStages = stages.every(stage => (
+      object(stage) && MODES.includes(stage.mode) &&
+      integer(stage.stage) && stage.stage >= 1 && stage.stage <= 10 &&
+      Array.isArray(stage.allowed) && stage.allowed.length && stage.allowed.every(knownNote) &&
+      integer(stage.orders) && stage.orders > 0 &&
+      number(stage.timeLimitSec) && stage.timeLimitSec > 0
+    ));
+    if (!validStages) return false;
+    stageConfigs = new Map(stages.map(stage => [stage.mode + ':' + stage.stage, stage]));
+    domain = domainApi.create(notes);
+    return true;
+  }
   function validateSave(s) {
-    if (!object(s) || s.schemaVersion !== 1 || !integer(s.coins) || !integer(s.totalServes) || !integer(s.totalPerfectServes) || s.totalPerfectServes > s.totalServes || !object(s.settings) || !object(s.tutorialDone) || !object(s.progress) || !object(s.rushBest) || !strings(s.codexUnlocked)) return false;
+    if (!object(s) || s.schemaVersion !== 1 || !integer(s.coins) || !integer(s.totalServes) || !integer(s.totalPerfectServes) || s.totalPerfectServes > s.totalServes || !object(s.settings) || !object(s.tutorialDone) || !object(s.progress) || !object(s.rushBest) || !strings(s.codexUnlocked) || !s.codexUnlocked.every(knownNote)) return false;
     if (!['on','off','bgmOff','muteAll'].includes(s.settings.sound) || typeof s.settings.skin !== 'string' || !['haptic','lefty','showBeats','slowMode'].every(k => typeof s.settings[k] === 'boolean')) return false;
     if (s.lastPlayedAt !== null && typeof s.lastPlayedAt !== 'string' && !number(s.lastPlayedAt)) return false;
     return MODES.every(m => typeof s.tutorialDone[m] === 'boolean' && object(s.progress[m]) && integer(s.progress[m].unlocked) && s.progress[m].unlocked >= 1 && s.progress[m].unlocked <= 10 && Array.isArray(s.progress[m].stars) && s.progress[m].stars.length === 10 && s.progress[m].stars.every(x => integer(x) && x <= 3) && object(s.rushBest[m]) && number(s.rushBest[m].score) && integer(s.rushBest[m].servedOrders));
@@ -40,22 +59,38 @@
     const ticks = ids.reduce((s, id) => s + TICKS[id], 0);
     if (ticks < 1 || ticks > 48 || order.totalTicks !== ticks || order.beats !== ticks/4) return false;
     if (order.sequence != null && (!Array.isArray(order.sequence) || order.sequence.length !== ids.length || [...order.sequence].sort().join('|') !== ids.sort().join('|'))) return false;
-    return typeof order.customerId === 'string' && order.customerId.length > 0;
+    if (new Set(order.items.map(item => item.noteId)).size !== order.items.length || !domain.isSolvable(order.items)) return false;
+    return CUSTOMERS.includes(order.customerId);
   }
   function validateSnapshot(s) {
     if (!object(s) || s.version !== 1 || typeof s.sessionId !== 'string' || !s.sessionId || !MODES.includes(s.mode) || !integer(s.stage) || s.stage < 1 || s.stage > 10 || !['practice','challenge','rush'].includes(s.activity) || typeof s.rush !== 'boolean' || !Array.isArray(s.orders) || !s.orders.length || s.orders.length > 999 || !s.orders.every(orderValid) || new Set(s.orders.map(o => o.id)).size !== s.orders.length || !integer(s.orderIndex) || s.orderIndex >= s.orders.length || s.orderId !== s.orders[s.orderIndex].id || !strings(s.awardedOrderIds)) return false;
-    if (s.awardedOrderIds.includes(s.orderId) || !s.awardedOrderIds.every(id => s.orders.slice(0, s.orderIndex).some(o => o.id === id))) return false;
+    if (s.rush !== (s.activity === 'rush') || !number(s.savedAt)) return false;
+    const cfg = stageConfigs && stageConfigs.get(s.mode + ':' + s.stage);
+    if (stageConfigs && !cfg) return false;
+    if (cfg && (s.orders.length !== (s.rush ? 999 : cfg.orders) || !s.orders.every(order => order.items.every(item => cfg.allowed.includes(item.noteId))))) return false;
+    const previousIds = s.orders.slice(0, s.orderIndex).map(order => order.id);
+    const expectedAwards = s.activity === 'practice' ? 0 : previousIds.length;
+    if (s.awardedOrderIds.length !== expectedAwards) return false;
+    if (s.awardedOrderIds.includes(s.orderId) || !s.awardedOrderIds.every(id => previousIds.includes(id))) return false;
     if (!Array.isArray(s.plates) || !s.plates.length || s.plates.length > 3) return false;
     let total = 0;
     for (let i=0; i<s.plates.length; i++) {
       const p = s.plates[i];
-      if (!object(p) || p.index !== i || !Array.isArray(p.slices) || p.slices.length > 16 || !p.slices.every(knownNote)) return false;
+      if (!object(p) || p.index !== i || !Array.isArray(p.slices) || p.slices.length > 16 || !p.slices.every(id => knownNote(id) && (!cfg || cfg.allowed.includes(id)))) return false;
       const ticks = p.slices.reduce((sum,id) => sum + TICKS[id],0);
       if (ticks > 16 || (i < s.plates.length-1 && ticks !== 16)) return false;
       total += ticks;
     }
     if (total > s.orders[s.orderIndex].totalTicks || !object(s.timer) || !number(s.timer.limitSec) || s.timer.limitSec <= 0 || !(s.timer.leftMs === null && s.activity === 'practice') && (!number(s.timer.leftMs) || s.timer.leftMs <= 0 || s.timer.leftMs > s.timer.limitSec * 1000)) return false;
+    const expectedLimit = s.rush ? Math.max(8, 24 - .5 * s.orderIndex) : cfg && cfg.timeLimitSec;
+    if (expectedLimit && s.timer.limitSec !== expectedLimit) return false;
+    if (!integer(s.score) || !integer(s.tips) || !number(s.combo) || !number(s.memoryRemainingMs) || s.memoryRemainingMs > 5000 || (!s.memoryVisible && s.memoryRemainingMs !== 0) || (s.rush && s.memoryVisible)) return false;
     if (![s.score,s.tips,s.combo,s.memoryRemainingMs].every(number) || !object(s.stageStats) || !['successes','firstTrySuccess','remainSec','tips'].every(k => number(s.stageStats[k])) || !integer(s.stageStats.successes) || !integer(s.stageStats.firstTrySuccess) || s.stageStats.firstTrySuccess > s.stageStats.successes || s.stageStats.successes > s.orderIndex || typeof s.memoryVisible !== 'boolean') return false;
+    const stats = s.stageStats;
+    if (!integer(stats.tips) || stats.tips !== s.tips || (!s.rush && stats.remainSec > s.orderIndex * s.timer.limitSec)) return false;
+    if (s.activity === 'practice' && (s.score !== 0 || s.tips !== 0 || s.combo !== 0 || stats.remainSec !== 0 || stats.successes !== s.orderIndex || stats.firstTrySuccess !== s.orderIndex)) return false;
+    if (s.rush && (s.combo > 2 || stats.successes !== s.orderIndex || stats.firstTrySuccess !== 0)) return false;
+    if (s.activity === 'challenge' && (!integer(s.combo) || s.combo > stats.firstTrySuccess)) return false;
     return true;
   }
   function makeSnapshot(st, options) {
@@ -97,7 +132,8 @@
         if (!object(e) || e.schemaVersion !== 2 || !object(e.save) || !strings(e.awardedOrderIds)) return failed('invalid_v2');
         const save = merge(defaults,e.save);
         if (!validateSave(save)) return failed('invalid_save');
-        if (e.session != null && !ledgerMatches(e.session,e.awardedOrderIds)) {
+        recoveredSave = save;
+        if (e.session != null && (!ledgerMatches(e.session,e.awardedOrderIds) || e.sessionId != null && e.sessionId !== e.session.sessionId)) {
           if (!backup(store,V2+'.invalid-session',raw)) return failed('backup_failed',save);
           return {save,session:null,awardedOrderIds:e.awardedOrderIds,status:'invalid_session',writable:true};
         }
@@ -146,5 +182,5 @@
       return {ok:true};
     } catch (_) { return {ok:false,reason:'unavailable'}; }
   }
-  return {load,write,makeSnapshot,restoreSnapshot,validateSave,validateSnapshot,keys:{v1:V1,v2:V2,backup:BACKUP}};
+  return {configure,load,write,makeSnapshot,restoreSnapshot,validateSave,validateSnapshot,keys:{v1:V1,v2:V2,backup:BACKUP}};
 });

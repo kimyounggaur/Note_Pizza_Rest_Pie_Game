@@ -21,7 +21,20 @@ function setup() {
   ctx.window=ctx;ctx.rulebookDiagram=name=>`<svg data-diagram="${name}"></svg>`;
   ctx.PizzaPause={add:r=>pauseReasons.add(r),remove:r=>pauseReasons.delete(r),has:r=>pauseReasons.has(r)};vm.createContext(ctx);
   vm.runInContext(read('rulebook.js'),ctx,{filename:'rulebook.js'});
-  return {ctx,doc,app,header,attrs,root,opener,close,initial,pauseReasons,listeners,dispatch(key,extra={}){const e={key,prevented:false,preventDefault(){this.prevented=true},...extra};for(const fn of documentHandlers.keydown||[])fn(e);return e},get scrolled(){return scrolled},get dragGhostRemoved(){return dragGhostRemoved},get dragClassRemoved(){return dragClassRemoved},setTime(t){now=t}};
+  const adapter = {
+    getState: () => Game.state,
+    notes: NOTES,
+    noteMark: ctx.noteMark,
+    pause: ctx.PizzaPause,
+    cancelDrag() {
+      if (!Game.drag) return;
+      Game.drag.button.classList.remove('dragging');
+      Game.drag.ghost.remove();
+      Game.drag = null;
+    },
+  };
+  const guide = ctx.initPizzaRulebook(adapter);
+  return {ctx,doc,app,header,attrs,root,opener,close,initial,pauseReasons,listeners,guide,adapter,dispatch(key,extra={}){const e={key,prevented:false,preventDefault(){this.prevented=true},...extra};for(const fn of documentHandlers.keydown||[])fn(e);return e},get scrolled(){return scrolled},get dragGhostRemoved(){return dragGhostRemoved},get dragClassRemoved(){return dragClassRemoved},setTime(t){now=t}};
 }
 test('상단 헤더의 룰북 버튼은 실제 대화상자에 연결된다',()=>{
   const html=read('index.html');
@@ -47,4 +60,25 @@ test('새 장면 열두 개가 설명에 연결되고 이미지 파일이 존재
     const ref=css.match(new RegExp(`guide-sheet-${sheet}\\s*\\{[^}]*url\\(['\"]?([^'\")]+)`));assert.ok(ref,`${sheet} 이미지 CSS 누락`);assert.ok(fs.existsSync(path.join(repo,ref[1])),`${ref[1]} 파일 누락`);const bytes=fs.readFileSync(path.join(repo,ref[1]));assert.equal(bytes.subarray(0,4).toString(),'RIFF');assert.equal(bytes.subarray(8,12).toString(),'WEBP');
     for(let i=0;i<6;i++)assert.match(html,new RegExp(`guide-sheet-${sheet} guide-frame-${i}[^>]*role="img" aria-label="[^"]+"`),`${sheet}/${i} 설명 그림 누락`);
   }
+});
+
+test('명시적 연결을 한 번만 초기화하고 새 게임 상태를 공유한다',()=>{
+  const x=setup();
+  const initialKeyHandlers=x.doc ? x.listeners.open : null;
+  const guide=x.ctx.initPizzaRulebook(x.adapter);
+  assert.equal(guide,x.guide);
+  assert.equal(x.listeners.open,initialKeyHandlers);
+  x.ctx.Game.state={screen:'KITCHEN',overlay:{type:'pause'},timer:{lastTick:200}};
+  x.listeners.open();
+  assert.equal(guide.isOpen,true);
+  assert.equal(x.ctx.Game.state.overlay.type,'pause');
+  x.close.focus();
+  x.dispatch('Escape');
+  assert.equal(x.ctx.Game.state.timer.lastTick,200);
+});
+test('연습과 도전의 서빙 버튼 조건을 각각 안내한다',()=>{
+  const html=setup().root.innerHTML;
+  assert.match(html,/연습에서는 종류와 개수가 모두 맞으면/);
+  assert.match(html,/완성! 서빙하기/);
+  assert.match(html,/도전과 러시는 전체 박자를 채우면/);
 });

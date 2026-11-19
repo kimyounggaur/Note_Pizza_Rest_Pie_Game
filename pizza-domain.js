@@ -67,6 +67,25 @@
       const activePlateTicks = (current.slices || []).reduce((sum, id) => sum + (valid(id) ? notes[id].ticks : 0), 0);
       return { items: entries, unexpected, requiredTicks, placedTicks, remainingTicks: Math.max(0, requiredTicks - placedTicks), activePlateTicks, activePlateRemainingTicks: Math.max(0, PLATE_TICKS - activePlateTicks), quantityReady: requiredTicks > 0 && requiredTicks === placedTicks, exactMatch: items.length > 0 && unexpected.length === 0 && entries.every(x => x.complete) };
     }
+    /** 판정은 화면의 카운터나 배치 순서 대신 주문과 실제 조각을 비교한다. */
+    function judge(order, plates) {
+      const rows = normalize(order?.items) || [];
+      const need = Object.fromEntries(rows.map(row => [row.noteId, row.count]));
+      const have = Object.fromEntries(Object.entries(counts(flatten(plates))));
+      let correct = 0;
+      let total = 0;
+      for (const { noteId, count } of rows) {
+        correct += Math.min(count, have[noteId] || 0);
+        total += count;
+      }
+      let wrong = 0;
+      for (const [noteId, count] of Object.entries(have)) {
+        wrong += Math.max(0, count - (need[noteId] || 0));
+      }
+      const accuracy = total ? correct / total : 0;
+      const grade = accuracy === 1 && wrong === 0 ? 'PERFECT' : accuracy >= .5 ? 'PARTIAL' : 'MISS';
+      return { grade, accuracy, correct, wrong, need, have };
+    }
     function randomIndex(random, length) {
       const n = Number(random());
       return Math.min(length - 1, Math.max(0, Math.floor((Number.isFinite(n) ? n : 0) * length)));
@@ -109,7 +128,7 @@
       // 잘못된 외부 단계 설정에 대해서도 종료하며 안전한 한 조각을 제공한다.
       return [{ noteId: sorted[0], count: 1 }];
     }
-    return Object.freeze({ progress, isSolvable, generateItems });
+    return Object.freeze({ progress, judge, isSolvable, generateItems });
   }
   return Object.freeze({ create, PLATE_TICKS, MAX_ORDER_TICKS });
 });

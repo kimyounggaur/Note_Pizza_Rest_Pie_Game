@@ -15,4 +15,97 @@ test('invalid snapshot is isolated without erasing progress',()=>{const store=ne
 
 test('saved sound settings and hostile note identifiers are validated',()=>{for(const sound of ['on','bgmOff','muteAll']){const save=defaults();save.settings.sound=sound;assert.equal(P.validateSave(save),true);}const snap=P.makeSnapshot(state(),{sessionId:'safe'});snap.plates[0].slices=['constructor'];assert.equal(P.validateSnapshot(snap),false);});
 
-test('rush sessions retain their activity and resume paused',()=>{const s=state();s.rush=true;s.activity='rush';const snap=P.makeSnapshot(s,{sessionId:'rush-1',activity:'rush'});assert.ok(snap);assert.equal(P.restoreSnapshot(snap).activity,'rush');});
+test('rush sessions retain their activity and resume paused',()=>{const s=state();s.rush=true;s.activity='rush';s.timer={limitSec:24,leftMs:23000};const snap=P.makeSnapshot(s,{sessionId:'rush-1',activity:'rush'});assert.ok(snap);assert.equal(P.restoreSnapshot(snap).activity,'rush');});
+
+
+test('unsafe customer, impossible orders and mismatched activities cannot resume', () => {
+  const snap = P.makeSnapshot(state(), {sessionId:'safe'});
+  for (const edit of [
+    s => { s.orders[0].customerId = 'missing-customer'; },
+    s => { s.rush = true; },
+    s => { delete s.savedAt; },
+    s => { s.orders[0].items = [{noteId:'dottedHalf',count:2}]; s.orders[0].totalTicks = 24; s.orders[0].beats = 6; },
+    s => { s.memoryVisible = true; s.memoryRemainingMs = 6000; },
+  ]) {
+    const changed = structuredClone(snap);
+    edit(changed);
+    assert.equal(P.validateSnapshot(changed), false);
+  }
+});
+
+test('completed-order indices, reward ledger and accumulated statistics agree', () => {
+  const st = state();
+  st.orders = [st.currentOrder, {...st.currentOrder,id:'second-order'}];
+  st.orderIndex = 1;
+  st.currentOrder = st.orders[1];
+  st.stageStats = {successes:1,firstTrySuccess:1,remainSec:23,tips:5,lastResult:null};
+  st.combo = 1;
+  st.tips = 5;
+  st.score = 146;
+  const snap = P.makeSnapshot(st, {sessionId:'reward-safe',awardedOrderIds:[st.orders[0].id]});
+  assert.ok(snap);
+  for (const edit of [
+    s => { s.awardedOrderIds = []; },
+    s => { s.stageStats.successes = 2; },
+    s => { s.stageStats.remainSec = 41; },
+    s => { s.stageStats.tips = 6; },
+    s => { s.combo = 2; },
+  ]) {
+    const changed = structuredClone(snap);
+    edit(changed);
+    assert.equal(P.validateSnapshot(changed), false);
+  }
+});
+
+test('envelope session identity mismatch is isolated while keeping prior achievements', () => {
+  const store = new Storage(), save = defaults();
+  save.coins = 25;
+  const session = P.makeSnapshot(state(), {sessionId:'actual-session'});
+  const raw = JSON.stringify({schemaVersion:2,save,session,sessionId:'different-session',awardedOrderIds:[]});
+  store.setItem(P.keys.v2,raw);
+  const loaded = P.load(defaults(),store);
+  assert.equal(loaded.status,'invalid_session');
+  assert.equal(loaded.save.coins,25);
+  assert.equal(loaded.session,null);
+  assert.equal(store.getItem(P.keys.v2 + '.invalid-session'),raw);
+});
+
+test('backup failure while isolating a corrupt v2 session keeps valid achievements readable', () => {
+  const store = new Storage(), save = defaults();
+  save.coins = 42;
+  const raw = JSON.stringify({schemaVersion:2,save,session:{version:77},awardedOrderIds:[]});
+  store.setItem(P.keys.v2,raw);
+  store.setItem = () => { throw Error('quota'); };
+  const loaded = P.load(defaults(),store);
+  assert.equal(loaded.writable,false);
+  assert.equal(loaded.save.coins,42);
+  assert.equal(loaded.session,null);
+  assert.equal(store.getItem(P.keys.v2),raw);
+});
+
+test('configured game stages validate allowed ingredients, counts and timer limits', () => {
+  const fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');
+  const html = fs.readFileSync(path.join(__dirname, '../js/app.js'),'utf8');
+  const start = html.indexOf('const NOTES = Object.freeze({');
+  const notesCode = html.slice(start, html.indexOf('\n});',start) + '\n});'.length);
+  const stagesStart = html.indexOf('function makeStages()');
+  const end = 'const STAGES = makeStages();';
+  const stagesCode = html.slice(stagesStart, html.indexOf(end,stagesStart) + end.length);
+  const config = vm.runInNewContext(`${notesCode}\n${stagesCode}\n({notes:NOTES,stages:STAGES})`,{COLORS:{red:'red',purple:'purple'}});
+  assert.equal(P.configure(config),true);
+  const st = state();
+  st.orders = Array.from({length:3},(_,i) => ({...st.currentOrder,id:'order-' + i}));
+  st.currentOrder = st.orders[0];
+  const snap = P.makeSnapshot(st,{sessionId:'configured'});
+  assert.ok(snap);
+  for (const edit of [
+    s => { s.orders[0].items = [{noteId:'half',count:1}]; },
+    s => { s.plates[0].slices = ['quarterRest']; },
+    s => { s.timer.limitSec = 35; },
+    s => { s.orders.pop(); },
+  ]) {
+    const changed = structuredClone(snap);
+    edit(changed);
+    assert.equal(P.validateSnapshot(changed),false);
+  }
+});
